@@ -8,7 +8,9 @@ source $KSROOT/scripts/base.sh
 alias echo_date='echo 【$(TZ=UTC-8 date -R +%Y年%m月%d日\ %X)】:'
 eval `dbus export ss`
 LOCK_FILE=/tmp/online_update.lock
+CONFIG_FILE=/koolshare/ss/ss.json
 DEL_SUBSCRIBE=0
+SOCKS_FLAG=0
 
 # ==============================
 # ssconf_basic_ping_
@@ -69,7 +71,7 @@ detect(){
 		unset lock
 		exit 1
 	else
-		echo_date 检测到X7.7固件，支持订阅！
+		echo_date 检测到$firmware_version固件，支持订阅！
 	fi
 }
 
@@ -164,7 +166,7 @@ decode_url_link(){
 }
 
 add_ssr_servers(){
-	sleep 1
+	usleep 250000
 	ssrindex=$(($(dbus list ssconf_basic_|grep _name_ | cut -d "=" -f1|cut -d "_" -f4|sort -rn|head -n1)+1))
 	dbus set ssconf_basic_name_$ssrindex=$remarks
 	[ -z "$1" ] && dbus set ssconf_basic_group_$ssrindex=$group
@@ -295,7 +297,6 @@ update_config(){
 get_v2ray_remote_config(){
 	decode_link="$1"
 	v2ray_group="$2"
-	
 	v2ray_v=$(echo "$decode_link" |jq -r .v)
 	v2ray_ps=$(echo "$decode_link" |jq -r .ps)
 	v2ray_add=$(echo "$decode_link" |jq -r .add)
@@ -304,16 +305,48 @@ get_v2ray_remote_config(){
 	v2ray_aid=$(echo "$decode_link" |jq -r .aid)
 	v2ray_net=$(echo "$decode_link" |jq -r .net)
 	v2ray_type=$(echo "$decode_link" |jq -r .type)
-	v2ray_path=$(echo "$decode_link" |jq -r .path)
-	v2ray_host=$(echo "$decode_link" |jq -r .host)
-	
 	v2ray_tls_tmp=$(echo "$decode_link" |jq -r .tls)
-	[ -n "$v2ray_tls_tmp" ] && v2ray_tls="tls" || v2ray_tls="none"
+	[ "$v2ray_tls_tmp"x == "tls"x ] && v2ray_tls="tls" || v2ray_tls="none"
+	
+	if [ "$v2ray_v" == "2" ];then
+		#echo_date "new format"
+		v2ray_path=$(echo "$decode_link" |jq -r .path)
+		v2ray_host=$(echo "$decode_link" |jq -r .host)
+	else
+		#echo_date "old format"
+		case $v2ray_net in
+		tcp)
+			v2ray_host=$(echo "$decode_link" |jq -r .host)
+			v2ray_path=""
+			;;
+		kcp)
+			v2ray_host=""
+			v2ray_path=""
+			;;
+		ws)
+			v2ray_host_tmp=$(echo "$decode_link" |jq -r .host)
+			if [ -n "$v2ray_host_tmp" ];then
+				format_ws=`echo $v2ray_host_tmp|grep -E ";"`
+				if [ -n "$format_ws" ];then
+					v2ray_host=`echo $v2ray_host_tmp|cut -d ";" -f1`
+					v2ray_path=`echo $v2ray_host_tmp|cut -d ";" -f1`
+				else
+					v2ray_host=""
+					v2ray_path=$v2ray_host
+				fi
+			fi
+			;;
+		h2)
+			v2ray_host=""
+			v2ray_path=$(echo "$decode_link" |jq -r .path)
+			;;
+		esac
+	fi
 
 	#把全部服务器节点编码后写入文件 /usr/share/shadowsocks/serverconfig/all_onlineservers
 	[ -n "$v2ray_group" ] && group_base64=`echo $v2ray_group | base64_encode | sed 's/ -//g'`
-	[ -n "$v2ray_ps" ] && server_base64=`echo $v2ray_ps | base64_encode | sed 's/ -//g'`	
-	[ -n "$v2ray_group" ] && [ -n "$v2ray_ps" ] && echo $server_base64 $group_base64 >> /tmp/all_onlineservers
+	[ -n "$v2ray_add" ] && server_base64=`echo $v2ray_add | base64_encode | sed 's/ -//g'`	
+	[ -n "$v2ray_group" ] && [ -n "$v2ray_add" ] && echo $server_base64 $group_base64 >> /tmp/all_onlineservers
 
 	#echo ------
 	#echo v2ray_v: $v2ray_v
@@ -327,92 +360,97 @@ get_v2ray_remote_config(){
 	#echo v2ray_path: $v2ray_path
 	#echo v2ray_tls: $v2ray_tls
 	#echo ------
-	[ "$v2ray_v" == "2" ] && return 0 || return 1
+	
+	[ -z "$v2ray_ps" -o -z "$v2ray_add" -o -z "$v2ray_port" -o -z "$v2ray_id" -o -z "$v2ray_aid" -o -z "$v2ray_net" -o -z "$v2ray_type" ] && return 1 || return 0
 }
 
 add_v2ray_servers(){
-	sleep 1
+	usleep 250000
 	v2rayindex=$(($(dbus list ssconf_basic_|grep _name_ | cut -d "=" -f1|cut -d "_" -f4|sort -rn|head -n1)+1))
-	if [ "$v2ray_v" == "2" ];then
-		# new format
-		[ -z "$1" ] && dbus set ssconf_basic_group_$v2rayindex=$v2ray_group
-		dbus set ssconf_basic_type_$v2rayindex=3
-		dbus set ssconf_basic_v2ray_mux_enable_$v2rayindex=0
-		dbus set ssconf_basic_v2ray_use_json_$v2rayindex=0
-		dbus set ssconf_basic_v2ray_security_$v2rayindex="auto"
-		dbus set ssconf_basic_mode_$v2rayindex=$ssr_subscribe_mode
-		dbus set ssconf_basic_name_$v2rayindex=$v2ray_ps
-		dbus set ssconf_basic_port_$v2rayindex=$v2ray_port
-		dbus set ssconf_basic_server_$v2rayindex=$v2ray_add
-		dbus set ssconf_basic_v2ray_uuid_$v2rayindex=$v2ray_id
-		dbus set ssconf_basic_v2ray_alterid_$v2rayindex=$v2ray_aid
-		dbus set ssconf_basic_v2ray_network_security_$v2rayindex=$v2ray_tls
-		dbus set ssconf_basic_v2ray_network_$v2rayindex=$v2ray_net
-		case $v2ray_net in
-		tcp)
-			# tcp协议设置【 tcp伪装类型 (type)】和【伪装域名 (host)】
-			dbus set ssconf_basic_v2ray_headtype_tcp_$v2rayindex=$v2ray_type
-			[ -n "$v2ray_host" ] && dbus set ssconf_basic_v2ray_network_host_$v2rayindex=$v2ray_host
-			;;
-		kcp)
-			# kcp协议设置【 kcp伪装类型 (type)】
-			dbus set ssconf_basic_v2ray_headtype_kcp_$v2rayindex=$v2ray_type
-			;;
-		ws|h2)
-			# ws/h2协议设置【 伪装域名 (host))】和【路径 (path)】
-			[ -n "$v2ray_host" ] && dbus set ssconf_basic_v2ray_network_host_$v2rayindex=$v2ray_host
-			[ -n "$v2ray_path" ] && dbus set ssconf_basic_v2ray_network_path_$v2rayindex=$v2ray_path
-			;;
-		esac
-		
-		echo_date v2ray节点：新增加 【$v2ray_ps】 到节点列表第 $v2rayindex 位。
-		
-	elif [ "$v2ray_v"x == "null"x ];then
-		echo_date 检测到旧的v2ray配置！
-		echo_date 不添加节点！
-		# old format
-		#echo_date v2ray节点：新增加 【$v2ray_ps】 到节点列表第 $v2rayindex 位。
-	fi
+	[ -z "$1" ] && dbus set ssconf_basic_group_$v2rayindex=$v2ray_group
+	dbus set ssconf_basic_type_$v2rayindex=3
+	dbus set ssconf_basic_v2ray_mux_enable_$v2rayindex=0
+	dbus set ssconf_basic_v2ray_use_json_$v2rayindex=0
+	dbus set ssconf_basic_v2ray_security_$v2rayindex="auto"
+	dbus set ssconf_basic_mode_$v2rayindex=$ssr_subscribe_mode
+	dbus set ssconf_basic_name_$v2rayindex=$v2ray_ps
+	dbus set ssconf_basic_port_$v2rayindex=$v2ray_port
+	dbus set ssconf_basic_server_$v2rayindex=$v2ray_add
+	dbus set ssconf_basic_v2ray_uuid_$v2rayindex=$v2ray_id
+	dbus set ssconf_basic_v2ray_alterid_$v2rayindex=$v2ray_aid
+	dbus set ssconf_basic_v2ray_network_security_$v2rayindex=$v2ray_tls
+	dbus set ssconf_basic_v2ray_network_$v2rayindex=$v2ray_net
+	case $v2ray_net in
+	tcp)
+		# tcp协议设置【 tcp伪装类型 (type)】和【伪装域名 (host)】
+		dbus set ssconf_basic_v2ray_headtype_tcp_$v2rayindex=$v2ray_type
+		[ -n "$v2ray_host" ] && dbus set ssconf_basic_v2ray_network_host_$v2rayindex=$v2ray_host
+		;;
+	kcp)
+		# kcp协议设置【 kcp伪装类型 (type)】
+		dbus set ssconf_basic_v2ray_headtype_kcp_$v2rayindex=$v2ray_type
+		;;
+	ws|h2)
+		# ws/h2协议设置【 伪装域名 (host))】和【路径 (path)】
+		[ -n "$v2ray_host" ] && dbus set ssconf_basic_v2ray_network_host_$v2rayindex=$v2ray_host
+		[ -n "$v2ray_path" ] && dbus set ssconf_basic_v2ray_network_path_$v2rayindex=$v2ray_path
+		;;
+	esac
+	echo_date v2ray节点：新增加 【$v2ray_ps】 到节点列表第 $v2rayindex 位。
 }
 
 update_v2ray_config(){
-	#isadded_server=$(uci show shadowsocks | grep -c "server=\'$server\'")
 	isadded_server=$(cat /tmp/all_localservers | grep -w $group_base64 | awk '{print $1}' | grep -c $server_base64|head -n1)
-	isadded_server_e=$(cat /tmp/all_localservers | grep -w $group_base64 | awk '{print $1}')
 	if [ "$isadded_server" == "0" ]; then
 		add_v2ray_servers
 		let addnum+=1
 	else
-		echo_date "此节点已经添加，比较配置是否更改？"
-		# 如果在本地的订阅节点中没找到该节点，检测下配置是否更改，如果更改，则更新配置
-		# index=$(cat /tmp/all_localservers| grep $group_base64 | grep $server_base64 |awk '{print $3}'|head -n1)
-		# local_remarks=$(dbus get ssconf_basic_name_$index)
-		# local_server_port=$(dbus get ssconf_basic_port_$index)
-		# local_protocol=$(dbus get ssconf_basic_rss_protocol_$index)
-		# local_protocol_param=$(dbus get ssconf_basic_rss_protocol_param_$index)
-		# local_encrypt_method=$(dbus get ssconf_basic_method_$index)
-		# local_obfs=$(dbus get ssconf_basic_rss_obfs_$index)
-		# local_password=$(dbus get ssconf_basic_password_$index)
-		# #local_group=$(dbus get ssconf_basic_group_$index)
-		# 
-		# #echo update $index
-		# local i=0
-		# [ "$ssr_subscribe_obfspara" == "0" ] && dbus remove ssconf_basic_rss_obfs_param_$index
-		# [ "$ssr_subscribe_obfspara" == "1" ] && dbus set ssconf_basic_rss_obfs_param_$index="$obfsparam"
-		# [ "$ssr_subscribe_obfspara" == "2" ] && dbus set ssconf_basic_rss_obfs_param_$index="$ssr_subscribe_obfspara_val"
-		# dbus set ssconf_basic_mode_$index="$ssr_subscribe_mode"
-		# [ "$local_remarks" != "$remarks" ] && dbus set ssconf_basic_name_$index=$remarks
-		# [ "$local_server_port" != "$server_port" ] && dbus set ssconf_basic_port_$index=$server_port && let i+=1
-		# [ "$local_protocol" != "$protocol" ] && dbus set ssconf_basic_rss_protocol_$index=$protocol && let i+=1
-		# [ "$local_protocol_param"x != "$protoparam"x ] && dbus set ssconf_basic_rss_protocol_param_$index=$protoparam && let i+=1
-		# [ "$local_encrypt_method" != "$encrypt_method" ] && dbus set ssconf_basic_method_$index=$encrypt_method && let i+=1
-		# [ "$local_obfs" != "$obfs" ] && dbus set ssconf_basic_rss_obfs_$index=$obfs && let i+=1
-		# [ "$local_password" != "$password" ] && dbus set ssconf_basic_password_$index=$password && let i+=1
-		# if [ "$i" -gt "0" ];then
-		# 	echo_date 修改SSR节点：【$remarks】 && let updatenum+=1
-		# else
-		# 	echo_date SSR节点：【$remarks】 参数未发生变化，跳过！
-		# fi
+		# 如果在本地的订阅节点中已经有该节点（用group和server去判断），检测下配置是否更改，如果更改，则更新配置
+		index=$(cat /tmp/all_localservers| grep $group_base64 | grep $server_base64 |awk '{print $3}'|head -n1)
+
+		local i=0
+		dbus set ssconf_basic_mode_$index="$ssr_subscribe_mode"
+		local_v2ray_ps=$(dbus get ssconf_basic_name_$index)
+		[ "$local_v2ray_ps" != "$v2ray_ps" ] && dbus set ssconf_basic_name_$index=$v2ray_ps && let i+=1
+		local_v2ray_add=$(dbus get ssconf_basic_server_$index)
+		[ "$local_v2ray_add" != "$v2ray_add" ] && dbus set ssconf_basic_server_$index=$v2ray_add && let i+=1
+		local_v2ray_port=$(dbus get ssconf_basic_port_$index)
+		[ "$local_v2ray_port" != "$v2ray_port" ] && dbus set ssconf_basic_port_$index=$v2ray_port && let i+=1
+		local_v2ray_id=$(dbus get ssconf_basic_v2ray_uuid_$index)
+		[ "$local_v2ray_id" != "$v2ray_id" ] && dbus set ssconf_basic_v2ray_uuid_$index=$v2ray_id && let i+=1
+		local_v2ray_aid=$(dbus get ssconf_basic_v2ray_alterid_$index)
+		[ "$local_v2ray_aid" != "$v2ray_aid" ] && dbus set ssconf_basic_v2ray_alterid_$index=$v2ray_aid && let i+=1
+		local_v2ray_tls=$(dbus get ssconf_basic_v2ray_network_security_$index)
+		[ "$local_v2ray_tls" != "$v2ray_tls" ] && dbus set ssconf_basic_v2ray_network_security_$index=$v2ray_tls && let i+=1
+		local_v2ray_net=$(dbus get ssconf_basic_v2ray_network_$index)
+		[ "$local_v2ray_net" != "$v2ray_net" ] && dbus set ssconf_basic_v2ray_network_$index=$v2ray_net && let i+=1
+		case $local_v2ray_net in
+		tcp)
+			# tcp协议
+			local_v2ray_type=$(dbus get ssconf_basic_v2ray_headtype_tcp_$index)
+			local_v2ray_host=$(dbus get ssconf_basic_v2ray_network_host_$index)
+			[ "$local_v2ray_type" != "$v2ray_type" ] && dbus set ssconf_basic_v2ray_headtype_tcp_$index=$v2ray_type && let i+=1
+			[ "$local_v2ray_host" != "$v2ray_host" ] && dbus set ssconf_basic_v2ray_network_host_$index=$v2ray_host && let i+=1
+			;;
+		kcp)
+			# kcp协议
+			local_v2ray_type=$(dbus get ssconf_basic_v2ray_headtype_kcp_$index)
+			[ "$local_v2ray_type" != "$v2ray_type" ] && dbus set ssconf_basic_v2ray_headtype_kcp_$index=$v2ray_type && let i+=1
+			;;
+		ws|h2)
+			# ws/h2协议
+			local_v2ray_host=$(dbus get ssconf_basic_v2ray_network_host_$index)
+			local_v2ray_path=$(dbus get ssconf_basic_v2ray_network_path_$index)
+			[ "$local_v2ray_host" != "$v2ray_host" ] && dbus set ssconf_basic_v2ray_network_host_$index=$v2ray_host && let i+=1
+			[ "$local_v2ray_path" != "$v2ray_path" ] && dbus set ssconf_basic_v2ray_network_path_$index=$v2ray_path && let i+=1
+			;;
+		esac
+
+		if [ "$i" -gt "0" ];then
+			echo_date 修改v2ray节点：【$v2ray_ps】 && let updatenum+=1
+		else
+			echo_date v2ray节点：【$v2ray_ps】 参数未发生变化，跳过！
+		fi
 	fi
 }
 
@@ -515,7 +553,7 @@ remove_node_gap(){
 				[ -n "$(dbus get ssconf_basic_v2ray_mux_concurrency_$nu)" ] && dbus set ssconf_basic_v2ray_mux_concurrency_"$y"="$(dbus get ssconf_basic_v2ray_mux_concurrency_$nu)" && dbus remove ssconf_basic_v2ray_mux_concurrency_$nu
 				[ -n "$(dbus get ssconf_basic_v2ray_json_$nu)" ] && dbus set ssconf_basic_v2ray_json_"$y"="$(dbus get ssconf_basic_v2ray_json_$nu)" && dbus remove ssconf_basic_v2ray_json_$nu
 				[ -n "$(dbus get ssconf_basic_type_$nu)" ] && dbus set ssconf_basic_type_"$y"="$(dbus get ssconf_basic_type_$nu)" && dbus remove ssconf_basic_type_$nu
-				sleep 1
+				usleep 250000
 				# change node nu
 				if [ "$nu" == "$ssconf_basic_node" ];then
 					dbus set ssconf_basic_node="$y"
@@ -528,17 +566,58 @@ remove_node_gap(){
 	fi
 }
 
+open_socks_23456(){
+	socksopen_a=`netstat -nlp|grep -w 23456|grep -E "local|v2ray"`
+	if [ -z "$socksopen_a" ];then
+		if [ "$ss_basic_type" == "1" ];then
+			SOCKS_FLAG=1
+			echo_date 开启ssr-local，提供socks5代理端口：23456
+			rss-local -l 23456 -c $CONFIG_FILE -u -f /var/run/sslocal1.pid >/dev/null 2>&1
+		elif  [ "$ss_basic_type" == "0" ];then
+			SOCKS_FLAG=2
+			echo_date 开启ss-local，提供socks5代理端口：23456
+			if [ "$ss_basic_ss_obfs" == "0" ];then
+				ss-local -l 23456 -c $CONFIG_FILE -u -f /var/run/sslocal1.pid >/dev/null 2>&1
+			else
+				ss-local -l 23456 -c $CONFIG_FILE $ARG_OBFS -u -f /var/run/sslocal1.pid >/dev/null 2>&1
+			fi
+		fi
+	fi
+	sleep 2
+}
+
+get_type_name() {
+	case "$1" in
+		0)
+			echo "SS"
+		;;
+		1)
+			echo "SSR"
+		;;
+		2)
+			echo "koolgame"
+		;;
+		3)
+			echo "v2ray"
+		;;
+	esac
+}
+
 get_oneline_rule_now(){
 	# ss订阅
 	ssr_subscribe_link="$1"
+	LINK_FORMAT=`echo "$ssr_subscribe_link" | grep -E "^http://|^https://"`
+	[ -z "$LINK_FORMAT" ] && return 4
+	
 	echo_date "开始更新在线订阅列表..." 
 	echo_date "开始下载订阅链接到本地临时文件，请稍等..."
 	rm -rf /tmp/ssr_subscribe_file* >/dev/null 2>&1
-	socksopen=`netstat -nlp|grep -w 23456|grep -E "local|v2ray"`
 	
 	if [ "$ss_basic_online_links_goss" == "1" ];then
-		if [ -n "$socksopen" ];then
-			echo_date "使用SS/SSR/v2ray代理网络下载..."
+		open_socks_23456
+		socksopen_b=`netstat -nlp|grep -w 23456|grep -E "local|v2ray"`
+		if [ -n "$socksopen_b" ];then
+			echo_date "使用$(get_type_name $ss_basic_type)提供的socks代理网络下载..."
 			curl --connect-timeout 8 -s -L --socks5-hostname 127.0.0.1:23456 $ssr_subscribe_link > /tmp/ssr_subscribe_file.txt
 		else
 			echo_date "没有可用的socks5代理端口，改用常规网络下载..."
@@ -648,8 +727,8 @@ get_oneline_rule_now(){
 					decode_link=$(decode_url_link $link)
 					decode_link=$(echo $decode_link|jq -c .)
 					if [ -n "$decode_link" ];then
-						get_v2ray_remote_config $decode_link $v2ray_group_tmp
-						[ "$?" == "0" ] && update_v2ray_config || echo_date "检测到旧的v2ray配置，跳过！"
+						get_v2ray_remote_config "$decode_link" "$v2ray_group_tmp"
+						[ "$?" == "0" ] && update_v2ray_config || echo_date "检测到一个错误节点，已经跳过！"
 					else
 						echo_date "解析失败！！！"
 					fi
@@ -687,12 +766,13 @@ start_update(){
 	rm -rf /tmp/all_onlineservers >/dev/null 2>&1
 	rm -rf /tmp/all_group_info.txt >/dev/null 2>&1
 	rm -rf /tmp/group_info.txt >/dev/null 2>&1
-	sleep 1
+	usleep 250000
 	echo_date 收集本地节点名到文件
 	LOCAL_NODES=`dbus list ssconf_basic_|grep _group_|cut -d "_" -f 4|cut -d "=" -f 1|sort -n`
 	if [ -n "$LOCAL_NODES" ];then
 		for LOCAL_NODE in $LOCAL_NODES
 		do
+			# write: server group nu
 			echo `dbus get ssconf_basic_server_$LOCAL_NODE|base64_encode` `dbus get ssconf_basic_group_$LOCAL_NODE|base64_encode`| eval echo `sed 's/$/ $LOCAL_NODE/g'` >> /tmp/all_localservers
 		done
 	else
@@ -726,21 +806,28 @@ start_update(){
 			rm -rf /tmp/ssr_subscribe_file.txt >/dev/null 2>&1 &
 			let DEL_SUBSCRIBE+=1
 			sleep 2
-			echo_date 退出订阅程序...
+			echo_date "退出订阅程序..."
 			;;
 		3)
 			echo_date "该订阅链接不包含任何节点信息！请检查你的服务商是否更换了订阅链接！"
 			rm -rf /tmp/ssr_subscribe_file.txt >/dev/null 2>&1 &
 			let DEL_SUBSCRIBE+=1
 			sleep 2
-			echo_date 退出订阅程序...
+			echo_date "退出订阅程序..."
+			;;
+		4)
+			echo_date "订阅地址错误！检测到你输入的订阅地址并不是标准网址格式！"
+			rm -rf /tmp/ssr_subscribe_file.txt >/dev/null 2>&1 &
+			let DEL_SUBSCRIBE+=1
+			sleep 2
+			echo_date "退出订阅程序..."
 			;;
 		1|*)
 			echo_date "下载订阅失败...请检查你的网络..."
 			rm -rf /tmp/ssr_subscribe_file.txt >/dev/null 2>&1 &
 			let DEL_SUBSCRIBE+=1
 			sleep 2
-			echo_date 退出订阅程序...
+			echo_date "退出订阅程序..."
 			;;
 		esac
 	done
@@ -805,7 +892,7 @@ start_update(){
 					need_adjust=1
 				fi
 			done
-			sleep 1
+			usleep 250000
 			# 再次排序
 			if [ "$need_adjust" == "1" ];then
 				echo_date 因为进行了删除订阅节点操作，需要对节点顺序进行检查！
@@ -816,16 +903,31 @@ start_update(){
 		echo_date "由于订阅过程有失败，本次不检测需要删除的订阅，以免误伤；下次成功订阅后再进行检测。"
 	fi
 	# 结束
-	echo_date "==================================================================="
-	echo_date "所有订阅任务完成，请等待6秒，或者手动关闭本窗口！"
-	echo_date "==================================================================="
-	sleep 1
+	echo_date "-------------------------------------------------------------------"
+	if [ "$SOCKS_FLAG" == "1" ];then
+		ssrlocal=`ps | grep -w rss-local | grep -v "grep" | grep -w "23456" | awk '{print $1}'`
+		if [ -n "$ssrlocal" ];then 
+			echo_date 关闭因订阅临时开启的ssr-local进程:23456端口...
+			kill $ssrlocal  >/dev/null 2>&1
+		fi
+	elif [ "$SOCKS_FLAG" == "2" ];then
+		sslocal=`ps | grep -w ss-local | grep -v "grep" | grep -w "23456" | awk '{print $1}'`
+		if [ -n "$sslocal" ];then 
+			echo_date  关闭因订阅临时开启ss-local进程:23456端口...
+			kill $sslocal  >/dev/null 2>&1
+		fi
+	fi
+	usleep 250000
+	echo_date "一点点清理工作..."
 	rm -rf /tmp/ssr_subscribe_file.txt >/dev/null 2>&1
 	rm -rf /tmp/ssr_subscribe_file_temp1.txt >/dev/null 2>&1
 	rm -rf /tmp/all_localservers >/dev/null 2>&1
 	rm -rf /tmp/all_onlineservers >/dev/null 2>&1
 	rm -rf /tmp/all_group_info.txt >/dev/null 2>&1
 	rm -rf /tmp/group_info.txt >/dev/null 2>&1
+	echo_date "==================================================================="
+	echo_date "所有订阅任务完成，请等待6秒，或者手动关闭本窗口！"
+	echo_date "==================================================================="
 }
 
 get_ss_config(){
@@ -839,7 +941,7 @@ get_ss_config(){
 
 add() {
 	echo_date "==================================================================="
-	sleep 1
+	usleep 250000
 	echo_date 通过SS/SSR/v2ray链接添加节点...
 	rm -rf /tmp/ssr_subscribe_file.txt >/dev/null 2>&1
 	rm -rf /tmp/ssr_subscribe_file_temp1.txt >/dev/null 2>&1
