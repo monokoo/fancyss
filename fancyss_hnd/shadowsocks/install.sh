@@ -6,19 +6,19 @@ mkdir -p /koolshare/ss
 
 # 判断路由架构和平台
 case $(uname -m) in
-  aarch64)
-	if [ "`uname -o|grep Merlin`" ] && [ -d "/koolshare" ];then
-		echo_date 固件平台【koolshare merlin aarch64】符合安装要求，开始安装插件！
-	else
-		echo_date 本插件适用于【koolshare merlin aarch64】固件平台，你的平台不能安装！！！
+	aarch64)
+		if [ "`uname -o|grep Merlin`" ] && [ -d "/koolshare" ];then
+			echo_date 固件平台【koolshare merlin aarch64 / merlin_hnd】符合安装要求，开始安装插件！
+		else
+			echo_date 本插件适用于【koolshare merlin aarch64 / merlin_hnd】固件平台，你的平台不能安装！！！
+			exit 1
+		fi
+		;;
+	*)
+		echo_date 本插件适用于koolshare merlin aarch64固件平台，你的平台：$(uname -m)不能安装！！！
+		echo_date 退出安装！
 		exit 1
-	fi
-    ;;
-  *)
-  	echo_date 本插件适用于koolshare merlin aarch64固件平台，你的平台：$(uname -m)不能安装！！！
-  	echo_date 退出安装！
-    exit 1
-    ;;
+	;;
 esac
 
 # 先关闭ss
@@ -82,6 +82,18 @@ rm -rf /koolshare/res/shadowsocks.css
 find /koolshare/init.d/ -name "*shadowsocks.sh" | xargs rm -rf
 find /koolshare/init.d/ -name "*socks5.sh" | xargs rm -rf
 
+# 检测储存空间是否足够
+echo_date 检测jffs分区剩余空间...
+SPACE_AVAL=$(df|grep jffs | awk '{print $4}')
+SPACE_NEED=$(du -s /tmp/shadowsocks | awk '{print $1}')
+if [ "$SPACE_AVAL" -gt "$SPACE_NEED" ];then
+	echo_date 当前jffs分区剩余"$SPACE_AVAL" KB, 插件安装需要"$SPACE_NEED" KB，空间满足，继续安装！
+else
+	echo_date 当前jffs分区剩余"$SPACE_AVAL" KB, 插件安装需要"$SPACE_NEED" KB，空间不足！
+	echo_date 退出安装！
+	exit 1
+fi
+
 echo_date 开始复制文件！
 cd /tmp
 
@@ -139,8 +151,8 @@ dbus set softcenter_module_shadowsocks_title="科学上网"
 dbus set softcenter_module_shadowsocks_description="科学上网"
 
 # 设置v2ray 版本号
-dbus set ss_basic_v2ray_version="v3.44"
-dbus set ss_basic_v2ray_date="20180927"
+dbus set ss_basic_v2ray_version="v4.9.0"
+dbus set ss_basic_v2ray_date="20181212"
 
 echo_date 一点点清理工作...
 rm -rf /tmp/shadowsocks* >/dev/null 2>&1

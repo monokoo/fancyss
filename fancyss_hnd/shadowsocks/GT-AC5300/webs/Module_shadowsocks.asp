@@ -237,8 +237,8 @@ function save() {
 	//define dbus obkect to save
 	var dbus = {};
 	//key define
-	var params_input = ["ssconf_basic_node", "ss_basic_mode", "ss_basic_server", "ss_basic_port", "ss_basic_method", "ss_basic_koolgame_udp", "ss_basic_ss_obfs", "ss_basic_ss_obfs_host", "ss_basic_rss_protocol", "ss_basic_rss_protocol_param", "ss_basic_rss_obfs", "ss_basic_rss_obfs_param", "ss_basic_ping_node", "ss_basic_ping_method", "ss_dns_china", "ss_dns_china_user", "ss_foreign_dns", "ss_dns2socks_user", "ss_chinadns_user", "ss_chinadns1_user", "ss_sstunnel_user", "ss_direct_user", "ss_game2_dns_foreign", "ss_game2_dns2ss_user", "$ss_basic_kcp_lserver", "ss_basic_kcp_lport", "ss_basic_kcp_server", "ss_basic_kcp_port", "ss_basic_kcp_parameter", "ss_basic_rule_update", "ss_basic_rule_update_time", "ssr_subscribe_mode", "ssr_subscribe_obfspara", "ssr_subscribe_obfspara_val", "ss_basic_online_links_goss", "ss_basic_node_update", "ss_basic_node_update_day", "ss_basic_node_update_hr", "ss_base64_links", "ss_basic_refreshrate", "ss_acl_default_port", "ss_online_action", "ss_acl_default_mode", "ss_basic_kcp_method", "ss_basic_kcp_password", "ss_basic_kcp_mode", "ss_basic_kcp_encrypt", "ss_basic_kcp_mtu", "ss_basic_kcp_sndwnd", "ss_basic_kcp_rcvwnd", "ss_basic_kcp_conn", "ss_basic_kcp_extra", "ss_basic_udp_software", "ss_basic_udp_node", "ss_basic_udpv1_lserver", "ss_basic_udpv1_lport", "ss_basic_udpv1_rserver", "ss_basic_udpv1_rport", "ss_basic_udpv1_password", "ss_basic_udpv1_mode", "ss_basic_udpv1_duplicate_nu", "ss_basic_udpv1_duplicate_time", "ss_basic_udpv1_jitter", "ss_basic_udpv1_report", "ss_basic_udpv1_drop", "ss_basic_udpv2_lserver", "ss_basic_udpv2_lport", "ss_basic_udpv2_rserver", "ss_basic_udpv2_rport", "ss_basic_udpv2_password", "ss_basic_udpv2_fec", "ss_basic_udpv2_timeout", "ss_basic_udpv2_mode", "ss_basic_udpv2_report", "ss_basic_udpv2_mtu", "ss_basic_udpv2_jitter", "ss_basic_udpv2_interval", "ss_basic_udpv2_drop", "ss_basic_udpv2_other", "ss_basic_udp2raw_lserver", "ss_basic_udp2raw_lport", "ss_basic_udp2raw_rserver", "ss_basic_udp2raw_rport", "ss_basic_udp2raw_password", "ss_basic_udp2raw_rawmode", "ss_basic_udp2raw_ciphermode", "ss_basic_udp2raw_authmode", "ss_basic_udp2raw_lowerlevel", "ss_basic_udp2raw_other", "ss_basic_udp_upstream_mtu", "ss_basic_udp_upstream_mtu_value", "ss_basic_v2ray_uuid", "ss_basic_v2ray_alterid", "ss_basic_v2ray_security", "ss_basic_v2ray_network", "ss_basic_v2ray_headtype_tcp", "ss_basic_v2ray_headtype_kcp", "ss_basic_v2ray_network_path", "ss_basic_v2ray_network_host", "ss_basic_v2ray_network_security", "ss_basic_v2ray_mux_concurrency", "ss_reboot_check", "ss_basic_week", "ss_basic_day", "ss_basic_inter_min", "ss_basic_inter_hour", "ss_basic_inter_day", "ss_basic_inter_pre", "ss_basic_time_hour", "ss_basic_time_min", "ss_basic_tri_reboot_time", "ss_basic_tri_reboot_policy", "ss_basic_dnsmasq_fastlookup"];
-	var params_check = ["ss_basic_enable", "ss_basic_use_kcp", "ss_basic_gfwlist_update", "ss_basic_chnroute_update", "ss_basic_cdn_update", "ss_basic_kcp_nocomp", "ss_basic_udp_boost_enable", "ss_basic_udpv1_disable_filter", "ss_basic_udpv2_disableobscure", "ss_basic_udpv2_disablechecksum", "ss_basic_udp2raw_boost_enable", "ss_basic_udp2raw_a", "ss_basic_udp2raw_keeprule", "ss_basic_v2ray_use_json", "ss_basic_v2ray_mux_enable"];
+	var params_input = ["ssconf_basic_node", "ss_basic_mode", "ss_basic_server", "ss_basic_port", "ss_basic_method", "ss_basic_koolgame_udp", "ss_basic_ss_obfs", "ss_basic_ss_obfs_host", "ss_basic_rss_protocol", "ss_basic_rss_protocol_param", "ss_basic_rss_obfs", "ss_basic_rss_obfs_param", "ss_basic_ping_node", "ss_basic_ping_method", "ss_dns_china", "ss_dns_china_user", "ss_foreign_dns", "ss_dns2socks_user", "ss_chinadns_user", "ss_chinadns1_user", "ss_sstunnel_user", "ss_direct_user", "ss_game2_dns_foreign", "ss_game2_dns2ss_user", "ss_basic_kcp_lserver", "ss_basic_kcp_lport", "ss_basic_kcp_server", "ss_basic_kcp_port", "ss_basic_kcp_parameter", "ss_basic_rule_update", "ss_basic_rule_update_time", "ssr_subscribe_mode", "ssr_subscribe_obfspara", "ssr_subscribe_obfspara_val", "ss_basic_online_links_goss", "ss_basic_node_update", "ss_basic_node_update_day", "ss_basic_node_update_hr", "ss_base64_links", "ss_basic_refreshrate", "ss_acl_default_port", "ss_online_action", "ss_acl_default_mode", "ss_basic_kcp_method", "ss_basic_kcp_password", "ss_basic_kcp_mode", "ss_basic_kcp_encrypt", "ss_basic_kcp_mtu", "ss_basic_kcp_sndwnd", "ss_basic_kcp_rcvwnd", "ss_basic_kcp_conn", "ss_basic_kcp_extra", "ss_basic_udp_software", "ss_basic_udp_node", "ss_basic_udpv1_lserver", "ss_basic_udpv1_lport", "ss_basic_udpv1_rserver", "ss_basic_udpv1_rport", "ss_basic_udpv1_password", "ss_basic_udpv1_mode", "ss_basic_udpv1_duplicate_nu", "ss_basic_udpv1_duplicate_time", "ss_basic_udpv1_jitter", "ss_basic_udpv1_report", "ss_basic_udpv1_drop", "ss_basic_udpv2_lserver", "ss_basic_udpv2_lport", "ss_basic_udpv2_rserver", "ss_basic_udpv2_rport", "ss_basic_udpv2_password", "ss_basic_udpv2_fec", "ss_basic_udpv2_timeout", "ss_basic_udpv2_mode", "ss_basic_udpv2_report", "ss_basic_udpv2_mtu", "ss_basic_udpv2_jitter", "ss_basic_udpv2_interval", "ss_basic_udpv2_drop", "ss_basic_udpv2_other", "ss_basic_udp2raw_lserver", "ss_basic_udp2raw_lport", "ss_basic_udp2raw_rserver", "ss_basic_udp2raw_rport", "ss_basic_udp2raw_password", "ss_basic_udp2raw_rawmode", "ss_basic_udp2raw_ciphermode", "ss_basic_udp2raw_authmode", "ss_basic_udp2raw_lowerlevel", "ss_basic_udp2raw_other", "ss_basic_udp_upstream_mtu", "ss_basic_udp_upstream_mtu_value", "ss_basic_v2ray_uuid", "ss_basic_v2ray_alterid", "ss_basic_v2ray_security", "ss_basic_v2ray_network", "ss_basic_v2ray_headtype_tcp", "ss_basic_v2ray_headtype_kcp", "ss_basic_v2ray_network_path", "ss_basic_v2ray_network_host", "ss_basic_v2ray_network_security", "ss_basic_v2ray_mux_concurrency", "ss_reboot_check", "ss_basic_week", "ss_basic_day", "ss_basic_inter_min", "ss_basic_inter_hour", "ss_basic_inter_day", "ss_basic_inter_pre", "ss_basic_time_hour", "ss_basic_time_min", "ss_basic_tri_reboot_time", "ss_basic_dnsmasq_fastlookup", "ss_basic_server_resolver", "ss_basic_server_resolver_user"];
+	var params_check = ["ss_basic_enable", "ss_basic_use_kcp", "ss_basic_gfwlist_update", "ss_basic_chnroute_update", "ss_basic_cdn_update", "ss_basic_kcp_nocomp", "ss_basic_udp_boost_enable", "ss_basic_udpv1_disable_filter", "ss_basic_udpv2_disableobscure", "ss_basic_udpv2_disablechecksum", "ss_basic_udp2raw_boost_enable", "ss_basic_udp2raw_a", "ss_basic_udp2raw_keeprule", "ss_basic_v2ray_use_json", "ss_basic_v2ray_mux_enable", "ss_basic_dns_hijack", "ss_basic_mcore"];
 	var params_base64_a = ["ss_dnsmasq", "ss_wan_white_ip", "ss_wan_white_domain", "ss_wan_black_ip", "ss_wan_black_domain", "ss_online_links"];
 	var params_base64_b = ["ss_basic_password", "ss_basic_custom"];
 	// collect data from input
@@ -257,7 +257,7 @@ function save() {
 			dbus[params_base64_a[i]] = Base64.encode(E(params_base64_a[i]).value);
 		} else {
 			//乱码了或者格式不对！
-			console.log("格式不正确")
+			//console.log("格式不正确")
 			dbus[params_base64_a[i]] = "";
 		}
 	}
@@ -427,8 +427,7 @@ function save() {
 		}
 	}
 
-	console.log("post_dbus", post_dbus);
-	
+	//console.log("post_dbus", post_dbus);
 	push_data("ss_config.sh", "start",  post_dbus);
 }
 
@@ -747,6 +746,7 @@ function update_visibility() {
 	var e = E("ss_dns_china").value == "12";
 	var f = E("ss_foreign_dns").value;
 	var g = E("ss_basic_tri_reboot_time").value;
+	var h = E("ss_basic_server_resolver").value == "12";
 	showhide("ss_basic_rule_update_time", a);
 	showhide("update_choose", a);
 	showhide("ss_basic_node_update_day", b);
@@ -754,13 +754,13 @@ function update_visibility() {
 	showhide("ssr_subscribe_obfspara_val", c);
 	showhide("ss_basic_udp_upstream_mtu_value", d);
 	showhide("ss_dns_china_user", e);
+	showhide("ss_basic_server_resolver_user", h);
 	showhide("ss_chinadns_user", (f == "2"));
 	showhide("ss_dns2socks_user", (f == "3"));
 	showhide("ss_sstunnel_user", (f == "4"));
 	showhide("ss_chinadns1_user", (f == "5"));
 	showhide("ss_direct_user", (f == "8"));
 	showhide("ss_basic_tri_reboot_time_note", (g != "0"));
-	showhide("ss_basic_tri_reboot_policy", (g != "0"));
 	if(f == "6"){
 		$("#ss_foreign_dns_note").html('DNS over HTTPS (DoH)，<a href="https://cloudflare-dns.com/zh-Hans/" target="_blank"><em>cloudflare服务</em></a>，拒绝一切污染~');
 	}else if(f == "7"){
@@ -880,7 +880,7 @@ function getAllConfigs() {
 		var params = ["password", "mode", "ss_obfs", "ss_obfs_host", "koolgame_udp", "rss_protocol", "rss_protocol_param", "rss_obfs", "rss_obfs_param", "group", "weight", "lbmode", "v2ray_uuid", "v2ray_alterid", "v2ray_security", "v2ray_network", "v2ray_headtype_tcp", "v2ray_headtype_kcp", "v2ray_network_path", "v2ray_network_host", "v2ray_network_security", "v2ray_mux_concurrency", "v2ray_json", "v2ray_use_json", "v2ray_mux_enable"];
 		for (var i = 0; i < params.length; i++) {
 			var ofield = p + "_" + params[i] + "_" + field;
-			if (typeof db_ss["ssconf_basic_mode_" + field] == "undefined") {
+			if (typeof db_ss[ofield] == "undefined") {
 				obj[params[i]] = '';
 			}else{
 				obj[params[i]] = db_ss[ofield];
@@ -1240,8 +1240,8 @@ function add_ss_node_conf(flag) { //点击添加按钮动作
 		if($("#ss_node_table_v2ray_json").val()){
 			if(E('ss_node_table_v2ray_json').value.indexOf("vmess://") != -1){
 				var vmess_node = JSON.parse(Base64.decode(E('ss_node_table_v2ray_json').value.split("//")[1]));
-				console.log("use v2ray vmess://")
-				console.log(vmess_node)
+				//console.log("use v2ray vmess://")
+				//console.log(vmess_node)
 				ns[p + "_server_" + node_global_max] = vmess_node.add;
 				ns[p + "_port_" + node_global_max] = vmess_node.port;
 				ns[p + "_v2ray_uuid_" + node_global_max] = vmess_node.id;
@@ -1343,7 +1343,7 @@ function refresh_html() {
 			E("ss_node_list_table_btn").style.top = "910px";
 		} else {
 			E("ss_node_list_table_th").style.top = "272px";
-			E("ss_node_list_table_td").style.top = "302px";
+			E("ss_node_list_table_td").style.top = "292px";
 			E("ss_node_list_table_btn").style.top = "907px";
 		}
 		if($('#show_btn1_1').hasClass("active")){
@@ -1663,8 +1663,8 @@ function edit_ss_node_conf(flag) { //编辑节点功能，数据重写
 		if($("#ss_node_table_v2ray_json").val()){
 			if(E('ss_node_table_v2ray_json').value.indexOf("vmess://") != -1){
 				var vmess_node = JSON.parse(Base64.decode(E('ss_node_table_v2ray_json').value.split("//")[1]));
-				console.log("use v2ray vmess://");
-				console.log(vmess_node);
+				//console.log("use v2ray vmess://");
+				//console.log(vmess_node);
 				ns["ssconf_basic_server_" + myid] = vmess_node.add;
 				ns["ssconf_basic_port_" + myid] = vmess_node.port;
 				ns["ssconf_basic_v2ray_uuid_" + myid] = vmess_node.id;
@@ -1688,7 +1688,7 @@ function edit_ss_node_conf(flag) { //编辑节点功能，数据重写
 				ns["ssconf_basic_v2ray_use_json_" + myid] = 0;
 				ns["ssconf_basic_v2ray_json_" + myid] = "";
 			}else{
-				console.log("use v2ray json");
+				//console.log("use v2ray json");
 				ns["ssconf_basic_v2ray_json_" + myid] = Base64.encode(pack_js(E('ss_node_table_v2ray_json').value));
 			}
 		}
@@ -2899,7 +2899,7 @@ function set_cron(action) {
 	}else if(action == 2){
 		//设定触发重启
 		db_ss["ss_basic_action"] = "17";
-		var cron_params2 = ["ss_basic_tri_reboot_time", "ss_basic_tri_reboot_policy"]; //for ss
+		var cron_params2 = ["ss_basic_tri_reboot_time"]; //for ss
 		for (var i = 0; i < cron_params2.length; i++) {
 			dbus[cron_params2[i]] = E(cron_params2[i]).value;
 		}
@@ -2966,7 +2966,7 @@ function set_cron(action) {
 										<div style="float:right; width:15px; height:25px;margin-top:-20px">
 											<img id="return_btn" onclick="reload_Soft_Center();" align="right" style="cursor:pointer;position:absolute;margin-left:-30px;margin-top:-25px;" title="返回软件中心" src="/images/backprev.png" onMouseOver="this.src='/images/backprevclick.png'" onMouseOut="this.src='/images/backprev.png'"></img>
 										</div>
-										<div style="margin-left:5px;margin-top:10px;margin-bottom:10px"><img src="/images/New_ui/export/line_export.png"></div>
+										<div style="margin:10px 0 10px 5px;" class="splitLine"></div>
 										<div class="SimpleNote" id="head_illustrate">本插件是支持<a href="https://github.com/shadowsocks/shadowsocks-libev" target="_blank"><em><u>SS</u></em></a>、<a href="https://github.com/shadowsocksrr/shadowsocksr-libev" target="_blank"><em><u>SSR</u></em></a>、<a href="http://firmware.koolshare.cn/binary/koolgame/" target="_blank"><em><u>KoolGame</u></em></a>、<a href="https://github.com/v2ray/v2ray-core" target="_blank"><em><u>V2Ray</u></em></a>四种客户端的科学上网、游戏加速工具。</div>
 										<div style="margin-top: 0px;text-align: center;font-size: 18px;margin-bottom: 0px;" class="formfontdesc" id="cmdDesc"></div>
 										<!-- this is the popup area for status -->
@@ -3734,6 +3734,32 @@ function set_cron(action) {
 														<input type="text" class="input_ss_table" id="ss_game2_dns2ss_user" name="ss_game2_dns2ss_user" placeholder="需端口号如：8.8.8.8:53" value="8.8.8.8:53">
 														<br/>
 															<span id="dns_plan_foreign0">默认使用koolgame内置的DNS2SS域名解析</span>
+													</td>
+												</tr>
+												<tr>
+													<th>DNS劫持（原chromecast功能）&nbsp;&nbsp;<a class="hintstyle" href="javascript:void(0);" onclick="openssHint(106)"><font color="#ffcc00"><u>[说明]</u></font></a></th>
+													<td>
+														<input type="checkbox" id="ss_basic_dns_hijack" onclick="verifyFields(this, 1);" checked="" />
+													</td>
+												</tr>
+												<tr>
+													<th>节点域名解析DNS服务器&nbsp;&nbsp;<a class="hintstyle" href="javascript:void(0);" onclick="openssHint(107)"><font color="#ffcc00"><u>[说明]</u></font></a></th>
+													<td>
+														<select id="ss_basic_server_resolver" name="ss_basic_server_resolver" class="input_option" onclick="update_visibility();" >
+															<option value="1" selected>运营商DNS【自动获取】</option>
+															<option value="2">阿里DNS1【223.5.5.5】</option>
+															<option value="3">阿里DNS2【223.6.6.6】</option>
+															<option value="4">114DNS1【114.114.114.114】</option>
+															<option value="5">114DNS1【114.114.115.115】</option>
+															<option value="6">cnnic DNS【1.2.4.8】</option>
+															<option value="7">cnnic DNS【210.2.4.8】</option>
+															<option value="8">oneDNS1【117.50.11.11】</option>
+															<option value="9">oneDNS2【117.50.22.22】</option>
+															<option value="10">百度DNS【180.76.76.76】</option>
+															<option value="11">DNSpod DNS【119.29.29.29】</option>
+															<option value="12">自定义</option>
+														</select>
+														<input type="text" class="input_ss_table" id="ss_basic_server_resolver_user" name="ss_basic_server_resolver_user" value="">
 													</td>
 												</tr>
 												<tr>
@@ -4787,7 +4813,7 @@ taobao.com
 													</td>
 												</tr>
 												<tr>
-													<th>插件触发重启设定（实验）</th>
+													<th>插件触发重启设定&nbsp;&nbsp;<a class="hintstyle" href="javascript:void(0);" onclick="openssHint(109)"><font color="#ffcc00"><u>[说明]</u></font></a></th>
 													<td>
 														<select	id="ss_basic_tri_reboot_time" name="ss_basic_tri_reboot_time" style="margin:0px	0px	0px	2px;" class="input_option" onclick="update_visibility();">
 															<option	value="0" selected>关闭</option>
@@ -4799,11 +4825,7 @@ taobao.com
 															<option	value="25">每隔25分钟</option>
 															<option	value="30">每隔30分钟</option>
 														</select>
-														<span id="ss_basic_tri_reboot_time_note">解析服务器IP，如果发生变更，则重启</span>
-														<select	id="ss_basic_tri_reboot_policy" name="ss_basic_tri_reboot_policy" style="margin:0px 0px 0px 2px;" class="input_option" >
-															<option	value="1" selected>整个插件</option>
-															<option	value="2">dnsmasq</option>
-														</select>
+														<span id="ss_basic_tri_reboot_time_note">解析服务器IP，如果发生变更，则重启插件！</span>
 														<a type="button" class="ss_btn" style="cursor:pointer" onclick="set_cron(2)">保存设置</a>
 													</td>
 												</tr>
@@ -4818,6 +4840,12 @@ taobao.com
 														</select>
 													</td>
 												</tr>
+												<tr>
+													<th>ss/ssr多核心支持&nbsp;&nbsp;<a class="hintstyle" href="javascript:void(0);" onclick="openssHint(108)"><font color="#ffcc00"><u>[说明]</u></font></a></th>
+													<td>
+														<input type="checkbox" id="ss_basic_mcore" onclick="verifyFields(this, 1);" checked="" />
+													</td>
+												</tr>												
 											</table>
 										</div>
 										<!--log_content-->

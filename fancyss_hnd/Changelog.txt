@@ -1,5 +1,69 @@
 fancyss_hnd Changelog
 ===========================================
+1.5.7
+   - fix	【订阅功能】修复有些机场节点有多个group信息时，只能订阅最后一组的问题；
+   - fix	【订阅功能】修复订阅一些机场的时候，虽然节点没有变化，但是每次都修改节点的问题；
+   - fix	【订阅功能】修复一些机场为了提示用户剩余流量和帐号截止日期使用的假节点信息显示不正确的问题。
+
+1.5.6
+   - fix	修复在用到cdn.conf的时候，dnsmasq-fastlookup不会替换的问题；
+   - fix	修复当负载均衡节点服务器是ip格式的时候，生成了错误的配置文件的问题；
+   - fix	修复一个web的bug。
+
+1.5.4 - 1.5.5
+   - fix	修复dnsmasq-fastlookup在RT-AC86U 384.8梅林改版固件中无法工作的问题；
+   - fix	修复回国模式自定义国外直连DNS无效的问题。
+   - fix	修复当【节点域名解析DNS服务器】自定义服务器加上端口号后导致v2ray无法工作等问题；
+   - update	优化了当ss/ssr/koolgame/v2ray服务器，或者负载均衡服务器使用域名时的解析功能；
+   - change	现在【插件触发重启设定】去掉了重启dnsmasq选项，因为重启dnsmasq基本无用。
+
+1.5.3
+   - fix	修复dnsmasq-fastlookup在RT-AC86U_384_45419官改固件中无法工作的问题。
+
+1.5.1 - 1.5.2
+   - update	ss/ssr现在支持调用多核心，在【附加功能】-【ss/ssr多核心支持】处启用；
+   - fix	现在负载均衡节点如果是域名且解析失败，不会添加到负载均衡列表，以免haproxy无法运行；
+   - fix	修复插件页面显示裂图的问题；
+   - update	更新v2ray到v4.9.0；
+   - update	同步最新规则；
+
+1.5.0
+   - 说明	1.4.9的中ssrr-libev和haproxy的二进制更新给忘了，故此版本中补上。
+   - fix	更新ssrr-libev二进制，修复ssrr-libev的速度降低问题，详情:https://github.com/hq450/fancyss/issues/238；
+   - update	更新haproxy程序到最新稳定版本：1.8.14。
+
+1.4.9
+   - fix	【1.5.0】更新ssrr-libev二进制，修复ssrr-libev的速度降低问题，详情:https://github.com/hq450/fancyss/issues/238；
+   - remove	移除auth_akarin_rand和auth_akarin_spec_a协议支持，原因同上；
+   - update	【1.5.0】更新haproxy程序到最新稳定版本：1.8.14；
+   - fix	修复负载均衡节点无法使用nslookup解析节点的问题；
+   - add	现在【插件触发重启设定（实验）】支持负载均衡节点的域名检查，如果检测到节点IP更换，会重启负载均衡部分以应用变化；
+   - fix	修复订阅计划任务选择周日以外的周次无效的问题。
+   - add	鉴于插件占用空间越来越大，现在插件安装前需要检测jffs空间是否足够；
+   - update	更新v2ray到v4.7.0；
+   
+1.4.8
+   - update	更新shadowsocks-libev到最新3.2.1，simple-obfs更新到最新0.0.5 （2018年11月25日 编译）；
+   - update	更新shadowsocksrr-libev到最新，支持auth_akarin_rand和auth_akarin_spec_a协议 （2018年11月25日 编译）；
+   - update	更新kcptun到20181114
+   - update	更新v2ray到v4.6.4；
+   - update	同步最新规则；
+   - fix	修复自定义服务器解析DNS的一个问题；
+
+1.4.7
+   - fix	修复rog皮肤机型在1.4.6中添加的功能实际没有的问题
+
+1.4.6
+   - add	【DNS设定】DNS劫持（原chromecast功能）添加是否启用的开关；
+   - add	【DNS设定】增加节点域名解析DNS服务器功能，现在服务器域名解析的DNS可以自己定义，而不是之前写死的114dns；
+   - fix	修复原chromecast规则在关闭插件后，iptables规则无法被正常清除的问题；
+   - update	更新oneDNS服务器地址；
+   - update	同步最新规则；
+
+1.4.5
+   - update	更新安装包内置v2ray二进制v4.3；
+   - update	同步最新规则；
+
 1.4.3 - 1.4.4
    - fix	修复使用v2ray gui配置提示json格式不对的问题。（fixed in 1.4.4）
    - update	优化web和订阅脚本；
