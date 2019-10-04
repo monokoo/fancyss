@@ -28,7 +28,7 @@ ip_prefix_hex=`nvram get lan_ipaddr | awk -F "." '{printf ("0x%02x", $1)} {print
 game_on=`dbus list ss_acl_mode|cut -d "=" -f 2 | grep 3`
 [ -n "$game_on" ] || [ "$ss_basic_mode" == "3" ] && mangle=1
 ss_basic_password=`echo $ss_basic_password|base64_decode`
-ARG_OBFS=""
+ARG_V2RAY_PLUGIN=""
 
 # 兼容3.8.9及其以下
 [ -z "$ss_basic_type" ] && {
@@ -317,27 +317,17 @@ resolv_server_ip(){
 }
 
 ss_arg(){
-	# simple obfs
-	if [ -n "$ss_basic_ss_obfs_host" ];then
-		if [ "$ss_basic_ss_obfs" == "http" ];then
-			ARG_OBFS="--plugin obfs-local --plugin-opts obfs=http;obfs-host=$ss_basic_ss_obfs_host"
-		elif [ "$ss_basic_ss_obfs" == "tls" ];then
-			ARG_OBFS="--plugin obfs-local --plugin-opts obfs=tls;obfs-host=$ss_basic_ss_obfs_host"
+	# v2ray-plugin
+	if [ -n "$ss_basic_ss_v2ray_plugin_opts" ];then
+		if [ "$ss_basic_ss_v2ray_plugin" == "1" ];then
+			ARG_V2RAY_PLUGIN="--plugin v2ray-plugin --plugin-opts $ss_basic_ss_v2ray_plugin_opts"
 		else
-			ARG_OBFS=""
-		fi
-	else
-		if [ "$ss_basic_ss_obfs" == "http" ];then
-			ARG_OBFS="--plugin obfs-local --plugin-opts obfs=http"
-		elif [ "$ss_basic_ss_obfs" == "tls" ];then
-			ARG_OBFS="--plugin obfs-local --plugin-opts obfs=tls"
-		else
-			ARG_OBFS=""
+			ARG_V2RAY_PLUGIN=""
 		fi
 	fi
 }
 # create shadowsocks config file...
-creat_ss_json(){
+create_ss_json(){
 	if [ "$ss_basic_type" == "0" ];then
 		echo_date 创建SS配置文件到$CONFIG_FILE
 		cat > $CONFIG_FILE <<-EOF
@@ -452,10 +442,10 @@ start_sslocal(){
 		rss-local -l 23456 -c $CONFIG_FILE -u -f /var/run/sslocal1.pid >/dev/null 2>&1
 	elif  [ "$ss_basic_type" == "0" ];then
 		echo_date 开启ss-local，提供socks5代理端口：23456
-		if [ "$ss_basic_ss_obfs" == "0" ];then
+		if [ "$ss_basic_ss_v2ray_plugin" == "0" ];then
 			ss-local -l 23456 -c $CONFIG_FILE -u -f /var/run/sslocal1.pid >/dev/null 2>&1
 		else
-			ss-local -l 23456 -c $CONFIG_FILE $ARG_OBFS -u -f /var/run/sslocal1.pid >/dev/null 2>&1
+			ss-local -l 23456 -c $CONFIG_FILE $ARG_V2RAY_PLUGIN -u -f /var/run/sslocal1.pid >/dev/null 2>&1
 		fi
 	fi
 }
@@ -529,10 +519,10 @@ start_dns(){
 			rss-tunnel -c $CONFIG_FILE -l $DNS_PORT -L $ss_sstunnel_user -u -f /var/run/sstunnel.pid >/dev/null 2>&1
 		elif [ "$ss_basic_type" == "0" ];then
 			echo_date 开启ss-tunnel，用于dns解析...
-			if [ "$ss_basic_ss_obfs" == "0" ];then
+			if [ "$ss_basic_ss_v2ray_plugin" == "0" ];then
 				ss-tunnel -c $CONFIG_FILE -l $DNS_PORT -L $ss_sstunnel_user -u -f /var/run/sstunnel.pid >/dev/null 2>&1
 			else
-				ss-tunnel -c $CONFIG_FILE -l $DNS_PORT -L $ss_sstunnel_user $ARG_OBFS -u -f /var/run/sstunnel.pid >/dev/null 2>&1
+				ss-tunnel -c $CONFIG_FILE -l $DNS_PORT -L $ss_sstunnel_user $ARG_V2RAY_PLUGIN -u -f /var/run/sstunnel.pid >/dev/null 2>&1
 			fi
 		elif [ "$ss_basic_type" == "3" ];then
 			echo_date V2Ray下不支持ss-tunnel，改用dns2socks！
@@ -984,14 +974,14 @@ start_ss_redir(){
 	if [ "$ss_basic_type" == "1" ];then
 		echo_date 开启ssr-redir进程，用于透明代理.
 		BIN=rss-redir
-		ARG_OBFS=""
+		ARG_V2RAY_PLUGIN=""
 	elif  [ "$ss_basic_type" == "0" ];then
 		# ss-libev需要大于160的熵才能正常工作
 		start_haveged
 		echo_date 开启ss-redir进程，用于透明代理.
-		if [ "$ss_basic_ss_obfs" == "0" ];then
+		if [ "$ss_basic_ss_v2ray_plugin" == "0" ];then
 			BIN=ss-redir
-			ARG_OBFS=""
+			ARG_V2RAY_PLUGIN=""
 		else
 			BIN=ss-redir
 		fi
@@ -1029,13 +1019,13 @@ start_ss_redir(){
 				else
 					echo_date $BIN的 tcp 走kcptun.
 				fi
-				$BIN -s 127.0.0.1 -p 1091 -c $CONFIG_FILE $ARG_OBFS -f /var/run/shadowsocks.pid >/dev/null 2>&1
+				$BIN -s 127.0.0.1 -p 1091 -c $CONFIG_FILE $ARG_V2RAY_PLUGIN -f /var/run/shadowsocks.pid >/dev/null 2>&1
 				# udp go udpspeeder
 				[ "$ss_basic_udp2raw_boost_enable" == "1" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder, udpspeeder的 udp 走 udpraw
 				[ "$ss_basic_udp2raw_boost_enable" == "1" ]  && [ "$ss_basic_udp_boost_enable" != "1" ] && echo_date $BIN的 udp 走udpraw.
 				[ "$ss_basic_udp2raw_boost_enable" != "1" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder.
 				[ "$ss_basic_udp2raw_boost_enable" != "1" ]  && [ "$ss_basic_udp_boost_enable" != "1" ] && echo_date $BIN的 udp 走$BIN.
-				$BIN -s 127.0.0.1 -p $SPEED_PORT -c $CONFIG_FILE $ARG_OBFS -U -f /var/run/shadowsocks.pid >/dev/null 2>&1
+				$BIN -s 127.0.0.1 -p $SPEED_PORT -c $CONFIG_FILE $ARG_V2RAY_PLUGIN -U -f /var/run/shadowsocks.pid >/dev/null 2>&1
 			else
 				# tcp go kcp
 				if [ "$SPEED_KCP" == "1" ];then
@@ -1045,10 +1035,10 @@ start_ss_redir(){
 				else
 					echo_date $BIN的 tcp 走kcptun.
 				fi
-				$BIN -s 127.0.0.1 -p 1091 -c $CONFIG_FILE $ARG_OBFS -f /var/run/shadowsocks.pid >/dev/null 2>&1
+				$BIN -s 127.0.0.1 -p 1091 -c $CONFIG_FILE $ARG_V2RAY_PLUGIN -f /var/run/shadowsocks.pid >/dev/null 2>&1
 				# udp go ss
 				echo_date $BIN的 udp 走$BIN.
-				$BIN -c $CONFIG_FILE $ARG_OBFS -U -f /var/run/shadowsocks.pid >/dev/null 2>&1
+				$BIN -c $CONFIG_FILE $ARG_V2RAY_PLUGIN -U -f /var/run/shadowsocks.pid >/dev/null 2>&1
 			fi
 		else
 			# tcp only go kcp
@@ -1060,31 +1050,31 @@ start_ss_redir(){
 				echo_date $BIN的 tcp 走kcptun.
 			fi
 			echo_date $BIN的 udp 未开启.
-			$BIN -s 127.0.0.1 -p 1091 -c $CONFIG_FILE $ARG_OBFS -f /var/run/shadowsocks.pid >/dev/null 2>&1
+			$BIN -s 127.0.0.1 -p 1091 -c $CONFIG_FILE $ARG_V2RAY_PLUGIN -f /var/run/shadowsocks.pid >/dev/null 2>&1
 		fi
 	else
 		if [ "$mangle" == "1" ];then
 			if [ "$SPEED_UDP" == "1" ] && [ "$ss_basic_udp_node" == "$ssconf_basic_node" ];then
 				# tcp go ss
 				echo_date $BIN的 tcp 走$BIN.
-				$BIN -c $CONFIG_FILE $ARG_OBFS -f /var/run/shadowsocks.pid >/dev/null 2>&1
+				$BIN -c $CONFIG_FILE $ARG_V2RAY_PLUGIN -f /var/run/shadowsocks.pid >/dev/null 2>&1
 				# udp go udpspeeder
 				[ "$ss_basic_udp2raw_boost_enable" == "1" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder, udpspeeder的 udp 走 udpraw
 				[ "$ss_basic_udp2raw_boost_enable" == "1" ]  && [ "$ss_basic_udp_boost_enable" != "1" ] && echo_date $BIN的 udp 走udpraw.
 				[ "$ss_basic_udp2raw_boost_enable" != "1" ]  && [ "$ss_basic_udp_boost_enable" == "1" ] && echo_date $BIN的 udp 走udpspeeder.
 				[ "$ss_basic_udp2raw_boost_enable" != "1" ]  && [ "$ss_basic_udp_boost_enable" != "1" ] && echo_date $BIN的 udp 走$BIN.
-				$BIN -s 127.0.0.1 -p $SPEED_PORT -c $CONFIG_FILE $ARG_OBFS -U -f /var/run/shadowsocks.pid >/dev/null 2>&1
+				$BIN -s 127.0.0.1 -p $SPEED_PORT -c $CONFIG_FILE $ARG_V2RAY_PLUGIN -U -f /var/run/shadowsocks.pid >/dev/null 2>&1
 			else
 				# tcp udp go ss
 				echo_date $BIN的 tcp 走$BIN.
 				echo_date $BIN的 udp 走$BIN.
-				$BIN -c $CONFIG_FILE $ARG_OBFS -u -f /var/run/shadowsocks.pid >/dev/null 2>&1
+				$BIN -c $CONFIG_FILE $ARG_V2RAY_PLUGIN -u -f /var/run/shadowsocks.pid >/dev/null 2>&1
 			fi
 		else
 			# tcp only go ss
 			echo_date $BIN的 tcp 走$BIN.
 			echo_date $BIN的 udp 未开启.
-			$BIN -c $CONFIG_FILE $ARG_OBFS -f /var/run/shadowsocks.pid >/dev/null 2>&1		
+			$BIN -c $CONFIG_FILE $ARG_V2RAY_PLUGIN -f /var/run/shadowsocks.pid >/dev/null 2>&1		
 		fi
 	fi
 	echo_date $BIN 启动完毕！.
@@ -1155,7 +1145,7 @@ get_path(){
 	fi
 }
 
-creat_v2ray_json(){
+create_v2ray_json(){
 	rm -rf "$V2RAY_CONFIG_FILE_TMP"
 	rm -rf "$V2RAY_CONFIG_FILE"
 	if [ "$ss_basic_v2ray_use_json" == "0" ];then
@@ -1346,7 +1336,7 @@ creat_v2ray_json(){
 		echo_date 使用自定义的v2ray json配置文件...
 		echo "$ss_basic_v2ray_json" | base64_decode > "$V2RAY_CONFIG_FILE_TMP"
 
-		OUTBOUND=`cat "$V2RAY_CONFIG_FILE_TMP" | jq .outbound`
+		OUTBOUND=`cat "$V2RAY_CONFIG_FILE_TMP" | jq .outbounds`
 		#JSON_INFO=`cat "$V2RAY_CONFIG_FILE_TMP" | jq 'del (.inbound) | del (.inboundDetour) | del (.log)'`
 		#INBOUND_TAG=`cat "$V2RAY_CONFIG_FILE_TMP" | jq '.inbound.tag'||""
 		#INBOUND_DETOUR_TAG=`cat "$V2RAY_CONFIG_FILE_TMP" | jq '.inbound.tag'||""
@@ -1383,23 +1373,23 @@ creat_v2ray_json(){
 						}"
 		#local TEMPLATE=`cat /koolshare/ss/rules/v2ray_template.json`
 		echo_date 解析V2Ray配置文件...
-		echo $TEMPLATE | jq --argjson args "$OUTBOUND" '. + {outbound: $args}' > "$V2RAY_CONFIG_FILE"
+		echo $TEMPLATE | jq --argjson args "$OUTBOUND" '. + {outbounds: $args}' > "$V2RAY_CONFIG_FILE"
 		#echo $TEMPLATE | jq --argjson args "$JSON_INFO" '. + $args' > "$V2RAY_CONFIG_FILE"
 		
 		echo_date V2Ray配置文件写入成功到"$V2RAY_CONFIG_FILE"
 		#close_in_five
 		
 		# 检测用户json的服务器ip地址
-		v2ray_protocal=`cat "$V2RAY_CONFIG_FILE" | jq -r .outbound.protocol`
-		case $v2ray_protocal in
+		v2ray_protocol=`cat "$V2RAY_CONFIG_FILE" | jq -r .outbounds[0].protocol`
+		case $v2ray_protocol in
 		vmess)
-			v2ray_server=`cat "$V2RAY_CONFIG_FILE" | jq -r .outbound.settings.vnext[0].address`
+			v2ray_server=`cat "$V2RAY_CONFIG_FILE" | jq -r .outbounds[0].settings.vnext[0].address`
 			;;
 		socks)
-			v2ray_server=`cat "$V2RAY_CONFIG_FILE" | jq -r .outbound.settings.servers[0].address`
+			v2ray_server=`cat "$V2RAY_CONFIG_FILE" | jq -r .outbounds[0].settings.servers[0].address`
 			;;
 		shadowsocks)
-			v2ray_server=`cat "$V2RAY_CONFIG_FILE" | jq -r .outbound.settings.servers[0].address`
+			v2ray_server=`cat "$V2RAY_CONFIG_FILE" | jq -r .outbounds[0].settings.servers[0].address`
 			;;
 		*)
 			v2ray_server=""
@@ -1484,7 +1474,7 @@ creat_v2ray_json(){
 start_v2ray(){
 	cd /koolshare/bin
 	#export GOGC=30
-	v2ray --config=/koolshare/ss/v2ray.json >/dev/null 2>&1 &
+	v2ray -config=/koolshare/ss/v2ray.json >/dev/null 2>&1 &
 	
 	local i=10
 	until [ -n "$V2PID" ]
@@ -1616,8 +1606,8 @@ flush_nat(){
 	ip route del local 0.0.0.0/0 dev lo table 310 >/dev/null 2>&1
 }
 
-# creat ipset rules
-creat_ipset(){
+# create ipset rules
+create_ipset(){
 	echo_date 创建ipset名单
 	ipset -! create white_list nethash && ipset flush white_list
 	ipset -! create black_list nethash && ipset flush black_list
@@ -1991,7 +1981,7 @@ load_nat(){
 		nat_ready=$(iptables -t nat -L PREROUTING -v -n --line-numbers|grep -v PREROUTING|grep -v destination)
 	done
 	echo_date "加载nat规则!"
-	#creat_ipset
+	#create_ipset
 	add_white_black_ip
 	apply_nat_rules
 	chromecast
@@ -2161,11 +2151,11 @@ apply_ss(){
 	resolv_server_ip
 	ss_arg
 	load_module
-	creat_ipset
+	create_ipset
 	create_dnsmasq_conf
 	# do not re generate json on router start, use old one
-	[ -z "$WAN_ACTION" ] && [ "$ss_basic_type" != "3" ] && creat_ss_json
-	[ -z "$WAN_ACTION" ] && [ "$ss_basic_type" = "3" ] && creat_v2ray_json
+	[ -z "$WAN_ACTION" ] && [ "$ss_basic_type" != "3" ] && create_ss_json
+	[ -z "$WAN_ACTION" ] && [ "$ss_basic_type" = "3" ] && create_v2ray_json
 	[ "$ss_basic_type" == "0" ] || [ "$ss_basic_type" == "1" ] && start_ss_redir
 	[ "$ss_basic_type" == "2" ] && start_koolgame
 	[ "$ss_basic_type" == "3" ] && start_v2ray

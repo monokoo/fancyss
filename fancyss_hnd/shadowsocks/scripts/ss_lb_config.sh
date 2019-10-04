@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# shadowsocks script for HND router with kernel 4.1.27 merlin firmware
+# shadowsocks script for HND/AXHND router with kernel 4.1.27/4.1.51 merlin firmware
 
-eval `dbus export ss`
 source /koolshare/scripts/base.sh
+eval $(dbus export ss)
 username=`nvram get http_username`
 alias echo_date='echo 【$(TZ=UTC-8 date -R +%Y年%m月%d日\ %X)】:'
 ISP_DNS1=$(nvram get wan0_dns|sed 's/ /\n/g'|grep -v 0.0.0.0|grep -v 127.0.0.1|sed -n 1p)
@@ -209,17 +209,17 @@ write_haproxy_cfg(){
 			if [ "$mode" == "3" ];then
 				echo_date 载入【$nick_name】【$server】作为备用节点...
 				cat >> /koolshare/configs/haproxy.cfg <<-EOF
-				    server $name $server_ip:$port weight $weight $sp_args resolvers mydns backup
+				    server $name $server_ip:$port maxconn 20480 weight $weight $sp_args resolvers mydns backup
 				EOF
 			elif [ "$mode" == "2" ];then
 				echo_date 载入【$nick_name】【$server】作为主用节点...
 				cat >> /koolshare/configs/haproxy.cfg <<-EOF
-				    server $name $server_ip:$port weight $weight $sp_args resolvers mydns
+				    server $name $server_ip:$port maxconn 20480 weight $weight $sp_args resolvers mydns
 				EOF
 			else
 				echo_date 载入【$nick_name】【$server】作为负载均衡节点...
 				cat >> /koolshare/configs/haproxy.cfg <<-EOF
-				    server $name $server_ip:$port weight $weight $sp_args resolvers mydns
+				    server $name $server_ip:$port maxconn 20480 weight $weight $sp_args resolvers mydns
 				EOF
 			fi
 		else
